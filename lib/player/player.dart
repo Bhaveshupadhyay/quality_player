@@ -9,12 +9,12 @@ import 'cubit/video_state.dart';
 import 'landscape_video.dart';
 
 
-class Player extends StatelessWidget {
+class QualityPlayer extends StatelessWidget {
   final String link;
   // final bool? isLandscape;
   final double? height;
   final VoidCallback? onExitIconTap;
-  const Player({super.key, required this.link, this.height, this.onExitIconTap,});
+  const QualityPlayer({super.key, required this.link, this.height, this.onExitIconTap,});
 
   @override
   Widget build(BuildContext context) {

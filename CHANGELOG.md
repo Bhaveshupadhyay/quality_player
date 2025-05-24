@@ -1,3 +1,5 @@
 ## 0.0.1
 
-* TODO: Describe initial release.
+Initial release: basic landscape video playback with native aspect ratio handling.
+
+Set up VideoPlayerController initialization and disposal in a stateful widget.
