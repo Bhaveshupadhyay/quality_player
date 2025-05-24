@@ -1,4 +1,4 @@
-##Quality Video Player
+## Quality Video Player
 
 A Flutter video player widget that supports both landscape and portrait modes, allowing flexible aspect-ratio handling and stretch-to-fill behavior.
 
@@ -20,7 +20,6 @@ dependencies:
 
 ```dart
 import 'package:player/quality_player.dart';
-import 'package:video_player/video_player.dart';
 
 final qualityPlayer = QualityPlayer('https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4');
 ```
