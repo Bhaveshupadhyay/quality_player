@@ -16,7 +16,6 @@ class LandscapeVideo extends StatelessWidget {
       DeviceOrientation.landscapeLeft,
     ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    // _hideStatusBar();
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (_,x){
@@ -32,11 +31,5 @@ class LandscapeVideo extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _hideStatusBar(){
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: [
-      SystemUiOverlay.bottom
-    ]);
   }
 }
