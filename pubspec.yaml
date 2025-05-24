@@ -1,7 +1,7 @@
 name: quality_player
-description: "A new Flutter project."
+description: "Quality Player"
 version: 0.0.1
-homepage:
+homepage: https://github.com/Bhaveshupadhyay/quality_player/blob/main/README.md
 
 environment:
   sdk: ^3.6.1

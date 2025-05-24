@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quality_player/player/potrait_video.dart';
-import 'package:quality_player/player/responsive.dart';
+import 'package:quality_player/quality_player/potrait_video.dart';
+import 'package:quality_player/quality_player/responsive.dart';
 import 'package:video_player/video_player.dart';
 
 import 'cubit/video_cubit.dart';
