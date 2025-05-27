@@ -1,1 +1,1 @@
-export 'quality_player/quality_player.dart';
+export 'quality_player/src/quality_player.dart';

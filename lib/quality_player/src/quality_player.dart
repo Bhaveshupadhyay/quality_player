@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quality_player/quality_player/potrait_video.dart';
-import 'package:quality_player/quality_player/responsive.dart';
+import 'package:quality_player/quality_player/src/potrait_video.dart';
+import 'package:quality_player/quality_player/src/responsive.dart';
+import 'package:quality_player/quality_player/utils/utils.dart';
 import 'package:video_player/video_player.dart';
 
-import 'cubit/video_cubit.dart';
-import 'cubit/video_state.dart';
+import '../cubit/player_cubit.dart';
+import '../cubit/player_state.dart';
 import 'landscape_video.dart';
 
 
@@ -14,14 +15,16 @@ class QualityPlayer extends StatelessWidget {
   // final bool? isLandscape;
   final double? height;
   final VoidCallback? onExitIconTap;
-  const QualityPlayer({super.key, required this.link, this.height, this.onExitIconTap,});
+  final List<VideoQuality>? videoQualities;
+  const QualityPlayer({super.key, required this.link, this.height,
+    this.onExitIconTap, this.videoQualities,});
 
   @override
   Widget build(BuildContext context) {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (create)=>VideoCubit()..initVideoPlayer(link: link)),
+        BlocProvider(create: (create)=>PlayerCubit()..initVideoPlayer(link: link)),
         BlocProvider(create: (create)=>VideoOrientationCubit()),
       ],
       child: BlocBuilder<VideoOrientationCubit,Orientation>(
@@ -35,12 +38,12 @@ class QualityPlayer extends StatelessWidget {
   }
 
   Widget _vPlayer({required double iconSize,bool? isLandscape})=>
-      BlocBuilder<VideoCubit,VideoState>(
-          builder: (context,VideoState state){
+      BlocBuilder<PlayerCubit,PlayerState>(
+          builder: (context,PlayerState state){
             if(state is VideoInitialized){
               return GestureDetector(
                   onTap: (){
-                    context.read<VideoCubit>().toggleControls();
+                    context.read<PlayerCubit>().toggleControls();
                   },
                   child: _player(context: context,
                       state: state,
@@ -83,7 +86,7 @@ class QualityPlayer extends StatelessWidget {
                           SizedBox(height: 5),
                           InkWell(
                             onTap: (){
-                              context.read<VideoCubit>().initVideoPlayer(link: state.videoLink);
+                              context.read<PlayerCubit>().initVideoPlayer(link: state.videoLink);
                             },
                             child: Container(
                               padding: EdgeInsets.symmetric(vertical: 5,horizontal: 10),
@@ -167,8 +170,8 @@ class QualityPlayer extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       InkWell(
-                        onTap: ()=>state.showControls?context.read<VideoCubit>().backwardVideo():
-                        context.read<VideoCubit>().toggleControls(),
+                        onTap: ()=>state.showControls?context.read<PlayerCubit>().backwardVideo():
+                        context.read<PlayerCubit>().toggleControls(),
                         child: Container(
                             padding: EdgeInsets.all(10),
                             decoration: const BoxDecoration(
@@ -183,8 +186,8 @@ class QualityPlayer extends StatelessWidget {
                         ),
                       ),
                       InkWell(
-                        onTap: ()=>state.showControls?context.read<VideoCubit>().toggleVideoPlay():
-                        context.read<VideoCubit>().toggleControls(),
+                        onTap: ()=>state.showControls?context.read<PlayerCubit>().toggleVideoPlay():
+                        context.read<PlayerCubit>().toggleControls(),
                         child: Container(
                           padding: EdgeInsets.all(10),
                           decoration: const BoxDecoration(
@@ -199,8 +202,8 @@ class QualityPlayer extends StatelessWidget {
                         ),
                       ),
                       InkWell(
-                        onTap: ()=>state.showControls?context.read<VideoCubit>().forwardVideo():
-                        context.read<VideoCubit>().toggleControls(),
+                        onTap: ()=>state.showControls?context.read<PlayerCubit>().forwardVideo():
+                        context.read<PlayerCubit>().toggleControls(),
                         child: Container(
                           padding: EdgeInsets.all(10),
                           decoration: const BoxDecoration(
@@ -229,8 +232,8 @@ class QualityPlayer extends StatelessWidget {
                 child: ValueListenableBuilder(
                   valueListenable: state.videoPlayerController,
                   builder: (BuildContext context, value, Widget? child) {
-                    final currentPosition = _formatDuration(value.position);
-                    final totalDuration = _formatDuration(value.duration);
+                    final currentPosition = Utils.formatDuration(value.position);
+                    final totalDuration = Utils.formatDuration(value.duration);
                     return AnimatedOpacity(
                       opacity: state.showControls? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 300),
@@ -293,10 +296,12 @@ class QualityPlayer extends StatelessWidget {
                     visible: state.showControls,
                     child: InkWell(
                         onTap: (){
-                          _showBottomDialog(context: context,
-                              controller: state.videoPlayerController,videoQualities: state.videoQualities??[]
-                              ,currentQuality: state.currentQuality??'adaptive',
-                            isLandscape: isLandscape
+                          _showBottomDialog(
+                              context: context,
+                              controller: state.videoPlayerController,
+                              videoQualities: videoQualities??[],
+                              currentQuality: state.currentQuality,
+                              isLandscape: isLandscape
                           );
                         },
                         child: Icon(Icons.settings,
@@ -328,7 +333,7 @@ class QualityPlayer extends StatelessWidget {
                             // }
                           }
                           else{
-                            context.read<VideoCubit>().toggleControls();
+                            context.read<PlayerCubit>().toggleControls();
                           }
                         }
                         else{
@@ -350,18 +355,11 @@ class QualityPlayer extends StatelessWidget {
     );
   }
 
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
-    String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$twoDigitMinutes:$twoDigitSeconds';
-  }
-
   void _showBottomDialog({required BuildContext context,
-    required VideoPlayerController controller,required List<String> videoQualities,
-    required String currentQuality,bool? isLandscape}){
+    required VideoPlayerController controller,required List<VideoQuality> videoQualities,
+    required int? currentQuality,bool? isLandscape}){
 
-    String? currentQuality= context.read<VideoCubit>().currentQuality;
+    int? currentQuality= context.read<PlayerCubit>().currentQuality;
 
     showModalBottomSheet(
         context: context,
@@ -378,10 +376,10 @@ class QualityPlayer extends StatelessWidget {
                       context: context,
                       settingsName: 'Quality',
                       settingsIcon: Icons.high_quality_outlined,
-                      value: currentQuality=='adaptive'|| currentQuality==null ?'Auto': '${currentQuality}p',
+                      value: currentQuality==VideoQuality.auto || currentQuality==null ?'Auto': '${currentQuality}p',
                       onTap: () {
                         _videoQualityDialog(context: context, controller: controller,
-                            videoQualities: videoQualities,currentQuality: currentQuality??'adaptive',
+                            videoQualities: videoQualities,currentQuality: currentQuality??VideoQuality.auto,
                             isLandscape: isLandscape);
                       },
                     isLandscape: isLandscape
@@ -405,7 +403,8 @@ class QualityPlayer extends StatelessWidget {
   }
 
   Widget _bottomSettingsIcon({required BuildContext context,
-    required String settingsName,required IconData settingsIcon, required String value, required VoidCallback onTap,
+    required String settingsName,required IconData settingsIcon,
+    required String value, required VoidCallback onTap,
     bool? isLandscape}){
 
     final double iconSize= Responsive.isMobile(context)? 25 : 35;
@@ -443,8 +442,8 @@ class QualityPlayer extends StatelessWidget {
   }
 
   void _videoQualityDialog({required BuildContext context,
-    required VideoPlayerController controller, required List<String> videoQualities,
-    required String currentQuality,bool? isLandscape}){
+    required VideoPlayerController controller, required List<VideoQuality> videoQualities,
+    required int currentQuality,bool? isLandscape}){
 
     final double fontSize= Responsive.isMobile(context)? 15 : 20;
     final double iconSize=fontSize;
@@ -464,10 +463,10 @@ class QualityPlayer extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: videoQualities.map((quality)=>
+                  children: videoQualities.map((videoQuality)=>
                       InkWell(
                         onTap: (){
-                          context.read<VideoCubit>().changeQuality(quality);
+                          context.read<PlayerCubit>().changeQuality(videoQuality);
                           Navigator.pop(context);
                           Navigator.pop(context);
                         },
@@ -476,11 +475,11 @@ class QualityPlayer extends StatelessWidget {
                           child: Row(
                             children: [
                               Opacity(
-                                  opacity: quality==currentQuality? 1 : 0,
+                                  opacity: videoQuality.quality==currentQuality? 1 : 0,
                                   child: Icon(Icons.check,size: iconSize,)
                               ),
                               SizedBox(width: 10,),
-                              Text(quality.toLowerCase()=='adaptive'? 'Auto' : '${quality}p',
+                              Text(videoQuality.quality==0? 'Auto' : '${videoQuality.quality}p',
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                       fontSize: fontSize,
                                       fontWeight: FontWeight.bold,
@@ -522,7 +521,7 @@ class QualityPlayer extends StatelessWidget {
                   children: [0.25,0.5,1.0,1.25,1.5,2.0].map((e)=>
                       InkWell(
                         onTap: (){
-                          context.read<VideoCubit>().changeSpeed(e);
+                          context.read<PlayerCubit>().changeSpeed(e);
                           Navigator.pop(context);
                           Navigator.pop(context);
                         },

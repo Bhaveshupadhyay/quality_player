@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'cubit/video_cubit.dart';
+import '../cubit/player_cubit.dart';
 
 class LandscapeVideo extends StatelessWidget {
   final bool? isTrailer;
@@ -21,7 +21,7 @@ class LandscapeVideo extends StatelessWidget {
       onPopInvokedWithResult: (_,x){
         context.read<VideoOrientationCubit>().portrait();
         if(isTrailer??false){
-          context.read<VideoCubit>().disposePlayer();
+          context.read<PlayerCubit>().disposePlayer();
         }
       },
       child: Scaffold(
