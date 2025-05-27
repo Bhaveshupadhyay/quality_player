@@ -1,15 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quality_player/quality_player/cubit/video_state.dart';
+import 'package:quality_player/quality_player/cubit/player_state.dart';
 import 'package:video_player/video_player.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-class VideoCubit extends Cubit<VideoState>{
-  VideoCubit():super(VideoInitial());
+class PlayerCubit extends Cubit<PlayerState>{
+  PlayerCubit():super(VideoInitial());
   VideoPlayerController? _controller;
   bool _showControls=false;
   bool _isControlChecking=false;
-  String? currentQuality;
+  int? _currentQuality;
 
 
   Future<void> loadVideo({String? link,String? trailerId, required bool? isTrailer,}) async {
@@ -19,30 +19,27 @@ class VideoCubit extends Cubit<VideoState>{
     initVideoPlayer(link: link!);
   }
 
-  Future<void> initVideoPlayer({required String link,String? quality,}) async {
-    // print(link);
+  Future<void> initVideoPlayer({required String link,int? quality,
+    List<VideoQuality>? videoQualities, Duration? seekPosition}) async {
+
+    enableWakeLock();
     emit(VideoLoading());
-    // print(quality);
     try {
       _controller?.dispose();
     } catch (e) {
-      // print('null');
-    }
-    // link="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
 
+    }
     _controller = VideoPlayerController.networkUrl(Uri.parse(
         link))
       ..initialize().then((_) {
-
-        // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
         if(!isClosed) {
-          // if(lastWatchedPosition!=null){
-          //   _controller!.seekTo(Duration(seconds: lastWatchedPosition??0));
-          // }
           _controller!.play();
+          if(seekPosition!=null){
+            _controller!.seekTo(seekPosition);
+          }
           _showControls=false;
           emit(VideoInitialized(videoPlayerController: _controller!,
-              showControls: _showControls,videoQualities: [],currentQuality: quality));
+              showControls: _showControls,videoQualities: videoQualities,currentQuality: quality));
         }
       },onError: (_){
         if(!isClosed){
@@ -55,7 +52,6 @@ class VideoCubit extends Cubit<VideoState>{
         await Future.delayed(const Duration(seconds: 3));
         _isControlChecking=false;
         if(_controller!.value.isPlaying && _showControls && !isClosed){
-          // print("showC $_showControls");
           _showControls=!_showControls;
           emit(VideoInitialized(videoPlayerController: _controller!,
               showControls: _showControls,videoQualities: [],currentQuality: quality));
@@ -69,15 +65,21 @@ class VideoCubit extends Cubit<VideoState>{
   void toggleControls(){
     _showControls=!_showControls;
     emit(VideoInitialized(videoPlayerController: _controller!,
-        showControls: _showControls,videoQualities: []));
+        showControls: _showControls,currentQuality: _currentQuality));
   }
 
   void toggleVideoPlay(){
-    _controller!.value.isPlaying?
-        _controller!.pause(): _controller!.play();
+    if(_controller!.value.isPlaying){
+      _controller!.pause();
+      disableWakeLock();
+    }
+    else{
+      _controller!.play();
+      enableWakeLock();
+    }
 
     emit(VideoInitialized(videoPlayerController: _controller!,
-        showControls: _showControls,videoQualities: []));
+        showControls: _showControls,currentQuality: _currentQuality));
   }
 
   void forwardVideo(){
@@ -102,42 +104,36 @@ class VideoCubit extends Cubit<VideoState>{
     if(speed==_controller!.value.playbackSpeed) return;
     _controller!.setPlaybackSpeed(speed);
     emit(VideoInitialized(videoPlayerController: _controller!,
-        showControls: _showControls,videoQualities: []));
+        showControls: _showControls,currentQuality: _currentQuality));
   }
 
-  Future<void> changeQuality(String quality) async {
-    // if(quality==currentQuality) return;
-    // // emit(VideoLoading());
-    // String? link;
-    // List<VideoVersion>? list;
-    // if(quality.toLowerCase()=='adaptive'){
-    //   list=videoData?.hlsVersions;
-    // }
-    // else if(int.parse(quality)>=720){ //hd versions
-    //   list=videoData?.hdVersions;
-    // }
-    // else{
-    //   list=videoData?.sdVersions;
-    // }
-    // for(VideoVersion videoVersion in list??[]){
-    //   if(videoVersion.rendition.contains(quality)){
-    //     link=videoVersion.link;
-    //     break;
-    //   }
-    // }
-    // // print(link);
-    // if(link!=null){
-    //   currentQuality=quality;
-    //   lastWatchedPosition=(await _controller?.position)?.inSeconds;
-    //   initVideoPlayer(link: link,quality: quality,);
-    // }
+  Future<void> changeQuality(VideoQuality videoQuality) async {
+    if(videoQuality.quality==_currentQuality) return;
+    // emit(VideoLoading());
+    _currentQuality=videoQuality.quality;
+    final currentPosition = _controller!.value.position;
+    initVideoPlayer(link: videoQuality.link,quality: videoQuality.quality,seekPosition: currentPosition);
+
   }
 
+  get currentQuality=>_currentQuality;
+
+  Future<void> enableWakeLock() async {
+    if(!await WakelockPlus.enabled){
+      await WakelockPlus.enable();
+    }
+  }
+
+  Future<void> disableWakeLock() async {
+    if(await WakelockPlus.enabled){
+      await WakelockPlus.disable();
+    }
+  }
 
   @override
   Future<void> close() {
-    // print('dispose');
-    WakelockPlus.disable();
+    print('dispose');
+    disableWakeLock();
     if(_controller!=null) {
       _controller!.dispose();
     }
@@ -159,23 +155,14 @@ class VideoOrientationCubit extends Cubit<Orientation>{
 }
 
 
-class VideoVersion {
-  final String rendition;
+class VideoQuality {
+  final int quality;
   final String link;
-  final String size;
+  static const int auto=0;
 
-  VideoVersion({
-    required this.rendition,
+  VideoQuality({
+    required this.quality,
     required this.link,
-    required this.size,
   });
-
-  factory VideoVersion.fromJson(Map<String, dynamic> json) {
-    return VideoVersion(
-      rendition: json['rendition'],
-      link: json['link'],
-      size: json['size'],
-    );
-  }
 }
 

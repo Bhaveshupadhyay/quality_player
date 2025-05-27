@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:quality_player/quality_player/responsive.dart';
+import 'package:quality_player/quality_player/src/responsive.dart';
 
 class PortraitVideo extends StatelessWidget {
   final double? height;
