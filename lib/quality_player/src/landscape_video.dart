@@ -5,9 +5,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../cubit/player_cubit.dart';
 
 class LandscapeVideo extends StatelessWidget {
-  final bool? isTrailer;
+  final bool alwaysLandscape;
   final Widget player;
-  const LandscapeVideo({super.key, this.isTrailer, required this.player});
+  const LandscapeVideo({super.key, this.alwaysLandscape=false, required this.player});
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +19,11 @@ class LandscapeVideo extends StatelessWidget {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (_,x){
-        context.read<VideoOrientationCubit>().portrait();
-        if(isTrailer??false){
+        if(alwaysLandscape){
           context.read<PlayerCubit>().disposePlayer();
+        }
+        else {
+          context.read<VideoOrientationCubit>().portrait();
         }
       },
       child: Scaffold(

@@ -60,8 +60,6 @@ class PlayerCubit extends Cubit<PlayerState>{
     });
     }
 
-
-
   void toggleControls(){
     _showControls=!_showControls;
     emit(VideoInitialized(videoPlayerController: _controller!,
@@ -132,11 +130,9 @@ class PlayerCubit extends Cubit<PlayerState>{
 
   @override
   Future<void> close() {
-    print('dispose');
+    // print('player cubit closed');
     disableWakeLock();
-    if(_controller!=null) {
-      _controller!.dispose();
-    }
+    disposePlayer();
     return super.close();
   }
 
@@ -146,11 +142,21 @@ class VideoOrientationCubit extends Cubit<Orientation>{
   VideoOrientationCubit():super(Orientation.portrait);
 
   void landscape(){
-    emit(Orientation.landscape);
+    if(!isClosed) {
+      emit(Orientation.landscape);
+    }
   }
 
   void portrait(){
-    emit(Orientation.portrait);
+    if(!isClosed) {
+      emit(Orientation.portrait);
+    }
+  }
+
+  void changeOrientation({bool toLandscape= false}){
+    if(toLandscape){
+      emit(Orientation.landscape);
+    }
   }
 }
 
