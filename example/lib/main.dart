@@ -45,19 +45,20 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-     body: QualityPlayer(
-         link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-       videoQualities: [
-         VideoQuality(quality: VideoQuality.auto,
-           link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'),
+      body: QualityPlayer(
+        link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+        videoQualities: [
+          VideoQuality(quality: VideoQuality.auto,
+              link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'),
 
-         VideoQuality(quality: 480,
-             link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'),
+          VideoQuality(quality: 480,
+              link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'),
 
-         VideoQuality(quality: 360,
-             link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'),
-       ],
-     ),
+          VideoQuality(quality: 360,
+              link: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'),
+        ],
+        alwaysLandscape: true,
+      ),
     );
   }
 }

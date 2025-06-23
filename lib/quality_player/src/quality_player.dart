@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:quality_player/quality_player/src/potrait_video.dart';
 import 'package:quality_player/quality_player/src/responsive.dart';
@@ -10,34 +11,40 @@ import '../cubit/player_state.dart';
 import 'landscape_video.dart';
 
 
-class QualityPlayer extends StatelessWidget {
+class QualityPlayer extends StatefulWidget {
+  ///Default video link
   final String link;
-  // final bool? isLandscape;
+  final bool alwaysLandscape;
   final double? height;
   final VoidCallback? onExitIconTap;
   final List<VideoQuality>? videoQualities;
   const QualityPlayer({super.key, required this.link, this.height,
-    this.onExitIconTap, this.videoQualities,});
+    this.onExitIconTap, this.videoQualities, this.alwaysLandscape=false,});
+
+  @override
+  State<QualityPlayer> createState() => _QualityPlayerState();
+}
+
+class _QualityPlayerState extends State<QualityPlayer> {
 
   @override
   Widget build(BuildContext context) {
-
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (create)=>PlayerCubit()..initVideoPlayer(link: link)),
-        BlocProvider(create: (create)=>VideoOrientationCubit()),
+        BlocProvider(create: (create)=>PlayerCubit()..initVideoPlayer(link: widget.link)),
+        BlocProvider(create: (create)=>VideoOrientationCubit()..changeOrientation(toLandscape: widget.alwaysLandscape)),
       ],
       child: BlocBuilder<VideoOrientationCubit,Orientation>(
         builder: (context,orientation){
           return orientation == Orientation.landscape?
-          LandscapeVideo(player: _vPlayer(iconSize: Responsive.isMobile(context)? 25 : 35,isLandscape: true)):
+          LandscapeVideo(player: _vPlayer(iconSize: Responsive.isMobile(context)? 25 : 35,isLandscape: true),alwaysLandscape: widget.alwaysLandscape,):
           PortraitVideo(player: _vPlayer(iconSize: Responsive.isMobile(context)? 25 : 35));
         },
       ),
     );
   }
 
-  Widget _vPlayer({required double iconSize,bool? isLandscape})=>
+  Widget _vPlayer({required double iconSize,bool isLandscape=false})=>
       BlocBuilder<PlayerCubit,PlayerState>(
           builder: (context,PlayerState state){
             if(state is VideoInitialized){
@@ -55,23 +62,27 @@ class QualityPlayer extends StatelessWidget {
             }
             else if(state is VideoLoading){
               return SizedBox(
-                height: height?? (MediaQuery.sizeOf(context).height * (Responsive.isMobile(context)? 0.25 : 0.55 )),
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                        top: Responsive.isMobile(context)? 5: 10,
-                        left: Responsive.isMobile(context)? 5: 10,
-                        child: Align(
-                          alignment: Alignment.topLeft,
-                          child: InkWell(
-                            onTap: onExitIconTap??()=>Navigator.pop(context),
-                            child: Icon(
-                              Icons.close_sharp,size: iconSize,color: Colors.white,),
-                          ),
-                        )
-                    ),
-                    const Center(child: CircularProgressIndicator(color:  Colors.white,),),
-                  ],
+                height: isLandscape? double.infinity :
+                widget.height?? (MediaQuery.sizeOf(context).height * (Responsive.isMobile(context)? 0.25 : 0.55 )),
+                child: SafeArea(
+                  left: isLandscape,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                          top: Responsive.isMobile(context)? 5: 10,
+                          left: Responsive.isMobile(context)? 5: 10,
+                          child: Align(
+                            alignment: Alignment.topLeft,
+                            child: InkWell(
+                              onTap: widget.onExitIconTap??()=>Navigator.pop(context),
+                              child: Icon(
+                                Icons.close_sharp,size: iconSize,color: Colors.white,),
+                            ),
+                          )
+                      ),
+                      const Center(child: CircularProgressIndicator(color:  Colors.white,),),
+                    ],
+                  ),
                 ),
               );
             }
@@ -106,7 +117,7 @@ class QualityPlayer extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.topLeft,
                         child: InkWell(
-                          onTap: onExitIconTap??()=>Navigator.pop(context),
+                          onTap: widget.onExitIconTap??()=>Navigator.pop(context),
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
                             child: Icon(
@@ -123,7 +134,7 @@ class QualityPlayer extends StatelessWidget {
       );
 
   Widget _player({required BuildContext context, required VideoInitialized state,
-    required double iconSize,required double fontSize, bool? isLandscape}){
+    required double iconSize,required double fontSize, bool isLandscape=false}){
     return GestureDetector(
       onScaleStart: (scale){
         // print(scale.focalPoint);
@@ -131,7 +142,7 @@ class QualityPlayer extends StatelessWidget {
 
       child: Stack(
         children: [
-          isLandscape??false?
+          isLandscape?
           Center(
             child: AspectRatio(
                 aspectRatio: state.videoPlayerController.value.aspectRatio,
@@ -225,8 +236,8 @@ class QualityPlayer extends StatelessWidget {
 
           Positioned.fill(
               // bottom: isLandscape??false? Responsive.isMobile(context)? 40: 60: 0,
-              left: isLandscape??false? Responsive.isMobile(context)? 5: 10:0,
-              right: isLandscape??false?Responsive.isMobile(context)? 5: 10:0,
+              left: isLandscape? Responsive.isMobile(context)? 5: 10:0,
+              right: isLandscape?Responsive.isMobile(context)? 5: 10:0,
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: ValueListenableBuilder(
@@ -238,14 +249,14 @@ class QualityPlayer extends StatelessWidget {
                       opacity: state.showControls? 1.0 : 0.0,
                       duration: const Duration(milliseconds: 300),
                       child: SafeArea(
-                        left: isLandscape??false,
+                        left: isLandscape,
                         right: false,
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Padding(
                               padding: EdgeInsets.symmetric(vertical: Responsive.isMobile(context)? 5: 10,
-                                  horizontal: isLandscape??false? 0: Responsive.isMobile(context)? 5: 10),
+                                  horizontal: isLandscape? 0: Responsive.isMobile(context)? 5: 10),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -258,12 +269,12 @@ class QualityPlayer extends StatelessWidget {
                                   InkWell(
                                     onTap: (){
                                       if(state.showControls){
-                                        isLandscape??false?
+                                        isLandscape?
                                         context.read<VideoOrientationCubit>().portrait():
                                         context.read<VideoOrientationCubit>().landscape();
                                       }
                                     },
-                                    child: Icon(isLandscape==true? Icons.fullscreen_exit : Icons.fullscreen,
+                                    child: Icon(isLandscape? Icons.fullscreen_exit : Icons.fullscreen,
                                       color:Colors.white,
                                       size: iconSize,
                                     ),
@@ -299,7 +310,7 @@ class QualityPlayer extends StatelessWidget {
                           _showBottomDialog(
                               context: context,
                               controller: state.videoPlayerController,
-                              videoQualities: videoQualities??[],
+                              videoQualities: widget.videoQualities??[],
                               currentQuality: state.currentQuality,
                               isLandscape: isLandscape
                           );
@@ -319,18 +330,20 @@ class QualityPlayer extends StatelessWidget {
               child: Align(
                 alignment: Alignment.topLeft,
                 child: SafeArea(
-                  left: isLandscape??false,
+                  left: isLandscape,
                   child: AnimatedOpacity(
                     opacity: state.showControls? 1.0 : 0.0,
                     duration: const Duration(milliseconds: 300),
                     child: InkWell(
-                      onTap: onExitIconTap??(){
-                        if(isLandscape==true){
+                      onTap: widget.onExitIconTap??(){
+                        if(isLandscape){
                           if(state.showControls) {
-                            context.read<VideoOrientationCubit>().portrait();
-                            // if(isTrailer){
-                            //   context.read<VideoCubit>().disposePlayer();
-                            // }
+                            if(widget.alwaysLandscape){
+                              Navigator.pop(context);
+                            }
+                            else{
+                              context.read<VideoOrientationCubit>().portrait();
+                            }
                           }
                           else{
                             context.read<PlayerCubit>().toggleControls();
@@ -550,5 +563,14 @@ class QualityPlayer extends StatelessWidget {
           );
         }
     );
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    super.dispose();
   }
 }

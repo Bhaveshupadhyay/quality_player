@@ -1,5 +1,7 @@
 name: quality_player
-description: "Quality Player"
+description: "Quality Player is a custom video player built using Flutter’s video_player package. It supports both portrait and landscape modes, so users can watch videos in any screen orientation.
+
+The player is fully responsive, meaning it works smoothly on all mobile and tablet sizes. It's a great choice if you're building an app that needs a clean and flexible video player"
 version: 0.0.2
 homepage: https://github.com/Bhaveshupadhyay/quality_player/blob/main/README.md
 
