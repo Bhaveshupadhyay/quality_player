@@ -74,7 +74,7 @@ class _QualityPlayerState extends State<QualityPlayer> {
                           child: Align(
                             alignment: Alignment.topLeft,
                             child: InkWell(
-                              onTap: widget.onExitIconTap??()=>Navigator.pop(context),
+                              onTap: widget.onExitIconTap??()=>onPressBack(),
                               child: Icon(
                                 Icons.close_sharp,size: iconSize,color: Colors.white,),
                             ),
@@ -117,7 +117,7 @@ class _QualityPlayerState extends State<QualityPlayer> {
                       child: Align(
                         alignment: Alignment.topLeft,
                         child: InkWell(
-                          onTap: widget.onExitIconTap??()=>Navigator.pop(context),
+                          onTap: widget.onExitIconTap??()=>onPressBack(),
                           child: Padding(
                             padding: EdgeInsets.symmetric(horizontal: 10),
                             child: Icon(
@@ -235,7 +235,7 @@ class _QualityPlayerState extends State<QualityPlayer> {
           ),
 
           Positioned.fill(
-              // bottom: isLandscape??false? Responsive.isMobile(context)? 40: 60: 0,
+              bottom: isLandscape? Responsive.isMobile(context)? 40: 50: 0,
               left: isLandscape? Responsive.isMobile(context)? 5: 10:0,
               right: isLandscape?Responsive.isMobile(context)? 5: 10:0,
               child: Align(
@@ -339,7 +339,7 @@ class _QualityPlayerState extends State<QualityPlayer> {
                         if(isLandscape){
                           if(state.showControls) {
                             if(widget.alwaysLandscape){
-                              Navigator.pop(context);
+                              onPressBack();
                             }
                             else{
                               context.read<VideoOrientationCubit>().portrait();
@@ -350,7 +350,7 @@ class _QualityPlayerState extends State<QualityPlayer> {
                           }
                         }
                         else{
-                          Navigator.pop(context);
+                          onPressBack();
                         }
                       },
                       child: Icon(
@@ -572,5 +572,11 @@ class _QualityPlayerState extends State<QualityPlayer> {
     ]);
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
+  }
+
+  void onPressBack(){
+    if(Navigator.canPop(context)){
+      Navigator.pop(context);
+    }
   }
 }

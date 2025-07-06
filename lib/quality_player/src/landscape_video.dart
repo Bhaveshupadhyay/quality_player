@@ -21,6 +21,9 @@ class LandscapeVideo extends StatelessWidget {
       onPopInvokedWithResult: (_,x){
         if(alwaysLandscape){
           context.read<PlayerCubit>().disposePlayer();
+          if(Navigator.canPop(context)){
+            Navigator.pop(context);
+          }
         }
         else {
           context.read<VideoOrientationCubit>().portrait();
