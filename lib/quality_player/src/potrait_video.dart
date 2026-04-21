@@ -15,7 +15,7 @@ class PortraitVideo extends StatelessWidget {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     return SafeArea(
       child: Container(
-        height: height?? (MediaQuery.sizeOf(context).height * (Responsive.isMobile(context)? 0.25 : 0.35)),
+        height: height?? (context.screenHeight() * (context.isMobile()? 0.25 : 0.35)),
         width: double.infinity,
         color: Colors.black,
         child: player,

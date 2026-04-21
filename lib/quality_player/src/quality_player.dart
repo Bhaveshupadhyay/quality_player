@@ -37,8 +37,8 @@ class _QualityPlayerState extends State<QualityPlayer> {
       child: BlocBuilder<VideoOrientationCubit,Orientation>(
         builder: (context,orientation){
           return orientation == Orientation.landscape?
-          LandscapeVideo(player: _vPlayer(iconSize: Responsive.isMobile(context)? 25 : 35,isLandscape: true),alwaysLandscape: widget.alwaysLandscape,):
-          PortraitVideo(player: _vPlayer(iconSize: Responsive.isMobile(context)? 25 : 35));
+          LandscapeVideo(player: _vPlayer(iconSize: context.isMobile()? 25 : 35,isLandscape: true),alwaysLandscape: widget.alwaysLandscape,):
+          PortraitVideo(player: _vPlayer(iconSize: context.isMobile()? 25 : 35));
         },
       ),
     );
@@ -56,21 +56,21 @@ class _QualityPlayerState extends State<QualityPlayer> {
                       state: state,
                       iconSize: iconSize,
                       isLandscape: isLandscape,
-                    fontSize: Responsive.isMobile(context)? 14 : 18
+                    fontSize: context.isMobile()? 14 : 18
                   )
               );
             }
             else if(state is VideoLoading){
               return SizedBox(
                 height: isLandscape? double.infinity :
-                widget.height?? (MediaQuery.sizeOf(context).height * (Responsive.isMobile(context)? 0.25 : 0.55 )),
+                widget.height?? (context.screenHeight() * (context.isMobile()? 0.25 : 0.55 )),
                 child: SafeArea(
                   left: isLandscape,
                   child: Stack(
                     children: [
                       Positioned.fill(
-                          top: Responsive.isMobile(context)? 5: 10,
-                          left: Responsive.isMobile(context)? 5: 10,
+                          top: context.isMobile()? 5: 10,
+                          left: context.isMobile()? 5: 10,
                           child: Align(
                             alignment: Alignment.topLeft,
                             child: InkWell(
@@ -235,9 +235,9 @@ class _QualityPlayerState extends State<QualityPlayer> {
           ),
 
           Positioned.fill(
-              bottom: isLandscape? Responsive.isMobile(context)? 40: 50: 0,
-              left: isLandscape? Responsive.isMobile(context)? 5: 10:0,
-              right: isLandscape?Responsive.isMobile(context)? 5: 10:0,
+              bottom: isLandscape? context.isMobile()? 40: 50: 0,
+              left: isLandscape? context.isMobile()? 5: 10:0,
+              right: isLandscape?context.isMobile()? 5: 10:0,
               child: Align(
                 alignment: Alignment.bottomCenter,
                 child: ValueListenableBuilder(
@@ -255,8 +255,8 @@ class _QualityPlayerState extends State<QualityPlayer> {
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
                             Padding(
-                              padding: EdgeInsets.symmetric(vertical: Responsive.isMobile(context)? 5: 10,
-                                  horizontal: isLandscape? 0: Responsive.isMobile(context)? 5: 10),
+                              padding: EdgeInsets.symmetric(vertical: context.isMobile()? 5: 10,
+                                  horizontal: isLandscape? 0: context.isMobile()? 5: 10),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -296,8 +296,8 @@ class _QualityPlayerState extends State<QualityPlayer> {
           ),
 
           Positioned.fill(
-              top: Responsive.isMobile(context)? 5: 10,
-              right: Responsive.isMobile(context)? 5: 10,
+              top: context.isMobile()? 5: 10,
+              right: context.isMobile()? 5: 10,
               child: AnimatedOpacity(
                 opacity: state.showControls? 1.0 : 0.0,
                 duration: const Duration(milliseconds: 300),
@@ -325,8 +325,8 @@ class _QualityPlayerState extends State<QualityPlayer> {
           ),
 
           Positioned.fill(
-              top: Responsive.isMobile(context)? 5: 10,
-              left: Responsive.isMobile(context)? 5: 10,
+              top: context.isMobile()? 5: 10,
+              left: context.isMobile()? 5: 10,
               child: Align(
                 alignment: Alignment.topLeft,
                 child: SafeArea(
@@ -420,8 +420,8 @@ class _QualityPlayerState extends State<QualityPlayer> {
     required String value, required VoidCallback onTap,
     bool? isLandscape}){
 
-    final double iconSize= Responsive.isMobile(context)? 25 : 35;
-    final double fontSize= Responsive.isMobile(context)? 15 : 20;
+    final double iconSize= context.isMobile()? 25 : 35;
+    final double fontSize= context.isMobile()? 15 : 20;
 
     final theme= Theme.of(context);
 
@@ -458,7 +458,7 @@ class _QualityPlayerState extends State<QualityPlayer> {
     required VideoPlayerController controller, required List<VideoQuality> videoQualities,
     required int currentQuality,bool? isLandscape}){
 
-    final double fontSize= Responsive.isMobile(context)? 15 : 20;
+    final double fontSize= context.isMobile()? 15 : 20;
     final double iconSize=fontSize;
 
     final theme= Theme.of(context);
@@ -513,7 +513,7 @@ class _QualityPlayerState extends State<QualityPlayer> {
   void _playBackDialog({required BuildContext context, required VideoPlayerController controller,
     bool? isLandscape}){
 
-    final double fontSize= Responsive.isMobile(context)? 15 : 20;
+    final double fontSize= context.isMobile()? 15 : 20;
     final double iconSize=fontSize;
 
     final theme= Theme.of(context);
